@@ -23,11 +23,18 @@ private:
     std::vector<Pose2d> base_path_; ///planned base path
 
     double weight_smoothness_=0.1;
-    double weight_bound_=20.0;
-    double weight_distance_=0.15;
-    double weight_voronoi_=0.2;
+    double weight_bound_=30.0;
+    double weight_distance_=0.05;
+    double weight_voronoi_=0.1;
 
     int map_resolution_=10;
+
+    ///the threshold of the voronoi term, if the distance between the closed obstacle and current position is larger
+    ///than this value, voronoi term will not work
+    double vorObsDMax_=20;
+
+    /// falloff rate for the voronoi field
+    float alpha_ = 1.0;
 
 
 public:

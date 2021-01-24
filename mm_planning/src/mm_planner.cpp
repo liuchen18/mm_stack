@@ -13,7 +13,7 @@ mm_planner::mm_planner(cv::Mat map_img,const std::vector<Point3d>& ee_path) {
     } else {
         cv::cvtColor(map_img, map_img_, CV_8UC1);
     }
-    //voronoi_.buildVoronoiFromImage(map_img);
+    voronoi_.buildVoronoiFromImage(map_img);
 
     for(const auto& pt : ee_path) {
         ee_path_.emplace_back(pt.x(), pt.y(), pt.z());
@@ -62,7 +62,10 @@ void mm_planner::plan() {
             //std::cout<<"smoothness: "<<smoothness_term(i).x()<<" "<<smoothness_term(i).y()<<std::endl;
             //std::cout << "bound: " << 10 * bound_term(i).x() << " " << 10 * bound_term(i).y() << std::endl;
             //std::cout<<"correction: "<<correction.x()<<" "<<correction.y()<<std::endl;
-
+            correction=correction-voronoi_term(i)*weight_voronoi_;
+            if(!is_in_boundary(ee_path_[i],current+correction)){
+                continue;
+            }
             current = current +correction;
             base_path_[i].set_x(current.x());
             base_path_[i].set_y(current.y());
@@ -186,9 +189,37 @@ Vec2d mm_planner::bound_term(int pt_index) {
 }
 
 Vec2d mm_planner::voronoi_term(int pt_index) {
-    Vec2d v_term;
+    Vec2d gradient;
+    Vec2d xi(base_path_[pt_index].x(),base_path_[pt_index].y());
+    float obsDst = voronoi_.getDistance(xi.x(), xi.y());
+    Vec2d obsVct(xi.x() - voronoi_.GetClosetObstacleCoor(xi).x(),
+                 xi.y() - voronoi_.GetClosetObstacleCoor(xi).y());
 
-    return v_term;
+    double edgDst = 0.0;
+    Vec2i closest_edge_pt = voronoi_.GetClosestVoronoiEdgePoint(xi, edgDst);
+    Vec2d edgVct(xi.x() - closest_edge_pt.x(), xi.y() - closest_edge_pt.y());
+
+    if (obsDst < vorObsDMax_ && obsDst > 1e-6) {
+        if (edgDst > 0) {
+            Vec2d PobsDst_Pxi = obsVct / obsDst;
+            Vec2d PedgDst_Pxi = edgVct / edgDst;
+//      float PvorPtn_PedgDst = alpha * obsDst * std::pow(obsDst - vorObsDMax, 2) /
+//                              (std::pow(vorObsDMax, 2) * (obsDst + alpha) * std::pow(edgDst + obsDst, 2));
+            float PvorPtn_PedgDst = (alpha_ / alpha_ + obsDst) *
+                                    (pow(obsDst - vorObsDMax_, 2) / pow(vorObsDMax_, 2)) * (obsDst / pow(obsDst + edgDst, 2));
+
+//      float PvorPtn_PobsDst = (alpha * edgDst * (obsDst - vorObsDMax) * ((edgDst + 2 * vorObsDMax + alpha)
+//                                                                         * obsDst + (vorObsDMax + 2 * alpha) * edgDst + alpha * vorObsDMax))
+//                              / (std::pow(vorObsDMax, 2) * std::pow(obsDst + alpha, 2) * std::pow(obsDst + edgDst, 2));
+            float PvorPtn_PobsDst = (alpha_ / (alpha_ + obsDst)) *
+                                    (edgDst / (edgDst + obsDst)) * ((obsDst - vorObsDMax_) / pow(vorObsDMax_, 2))
+                                    * (-(obsDst - vorObsDMax_) / (alpha_ + obsDst) - (obsDst - vorObsDMax_) / (obsDst + edgDst) + 2);
+            gradient = (PvorPtn_PobsDst * PobsDst_Pxi + PvorPtn_PedgDst * PedgDst_Pxi) * 100;
+            return gradient;
+        }
+        return gradient;
+    }
+    return gradient;
 }
 
 bool mm_planner::is_in_boundary(Point3d ee_pt,Vec2d base_pos) {
@@ -252,4 +283,5 @@ void mm_planner::show_final_path() {
     }
     imshow("optimized path", map);
     cv::waitKey();
+    imwrite("../map_imgs/optimized_path.png", map);
 }

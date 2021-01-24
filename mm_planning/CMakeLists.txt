@@ -19,7 +19,7 @@ add_library(${PROJECT_NAME}
         src/dynamic_voronoi.cpp
         src/bucket_queue.cpp
 
-        include/point3d.h include/mm_planner.h src/mm_planner.cpp)
+        include/point3d.h include/mm_planner.h src/mm_planner.cpp include/cubic_spline.h)
 
 target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
 

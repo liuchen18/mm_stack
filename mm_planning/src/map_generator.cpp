@@ -44,10 +44,12 @@ void generate_map(std::vector<std::vector<int>> obs_list) {
 
 int main() {
     std::vector<std::vector<int>> obs_list;
-    std::vector<int> obs1={400,400,20};
-    std::vector<int> obs2={600,300,20};
+    std::vector<int> obs1={380,400,20};
+    std::vector<int> obs2={220,400,20};
+    std::vector<int> obs3={540,450,20};
     obs_list.push_back(obs1);
     obs_list.push_back(obs2);
+    obs_list.push_back(obs3);
 
     generate_map(obs_list);
 

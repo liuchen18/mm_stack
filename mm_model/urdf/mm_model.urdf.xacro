@@ -1,0 +1,312 @@
+<?xml version="1.0"?>
+<robot name="mm_model" xmlns:xacro="http://wiki.ros.org/xacro">
+
+  <!-- some xacro properties-->
+  <xacro:property name="PI" value="3.1415926535897931" />
+  <xacro:property name="prefix" value="" />
+  <xacro:property name="agv_mass" value="50.0" />
+
+  <xacro:property name="initial_x" value="0.0" />
+  <xacro:property name="initial_y" value="1.5" />
+
+  <!-- include the xacro files-->
+  <xacro:include filename="$(find mm_model)/urdf/mm_model.transmission.xacro"/>
+  <xacro:include filename="$(find mm_model)/urdf/mm_model.gazebo.xacro"/>
+  <xacro:include filename="$(find mm_model)/urdf/materials.xacro"/>
+
+  <!-- some xacro macros-->
+  <xacro:macro name="cylinder_inertial" params="radius length mass *origin">
+    <inertial>
+      <mass value="${mass}" />
+      <xacro:insert_block name="origin" />
+      <inertia ixx="${0.0833333 * mass * (3 * radius * radius + length * length)}" ixy="0.0" ixz="0.0"
+        iyy="${0.0833333 * mass * (3 * radius * radius + length * length)}" iyz="0.0"
+        izz="${0.5 * mass * radius * radius}" />
+    </inertial>
+  </xacro:macro>
+
+
+  <!-- link list -->
+
+
+  <link name="${prefix}agv_link">
+    <inertial>
+      <mass value="${agv_mass}" />
+      <inertia ixx="${agv_mass}" ixy="0.0" ixz="0.0" iyy="${agv_mass}" iyz="0.0" izz="${agv_mass}" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="${PI/2.0} 0 0" />
+      <geometry>
+        <mesh filename="package://mm_model/meshes/car.STL" />
+      </geometry>
+      <material name="blue"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="${PI/2.0} 0 0" />
+      <geometry>
+        <mesh filename="package://mm_model/meshes/car.STL" />
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="${prefix}control_box">
+    <inertial>
+      <mass value="23" />
+      <inertia ixx="1" ixy="0.0" ixz="0.0" iyy="1" iyz="0.0" izz="1" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.5 0.483 0.19"/>
+      </geometry>
+      <material name="blue"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.5 0.483 0.19"/>
+      </geometry>
+    </collision>
+  </link>
+
+
+  <link name="${prefix}base_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://mm_model/meshes/lbr_iiwa_14_r820/visual/base_link.dae" />
+      </geometry>
+      <material name="purple"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://mm_model/meshes/lbr_iiwa_14_r820/collision/base_link.stl" />
+      </geometry>
+    </collision>
+    <xacro:cylinder_inertial radius="0.075" length="0.038" mass="0.5">
+      <origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
+    </xacro:cylinder_inertial>
+  </link>
+
+  <link name="${prefix}link_1">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://mm_model/meshes/lbr_iiwa_14_r820/visual/link_1.dae" />
+      </geometry>
+      <material name="yellow"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://mm_model/meshes/lbr_iiwa_14_r820/collision/link_1.stl" />
+      </geometry>
+    </collision>
+    <xacro:cylinder_inertial radius="0.075" length="0.038" mass="0.5">
+      <origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
+    </xacro:cylinder_inertial>
+  </link>
+
+  <link name="${prefix}link_2">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://mm_model/meshes/lbr_iiwa_14_r820/visual/link_2.dae" />
+      </geometry>
+      <material name="red"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://mm_model/meshes/lbr_iiwa_14_r820/collision/link_2.stl" />
+      </geometry>
+    </collision>
+    <xacro:cylinder_inertial radius="0.075" length="0.038" mass="0.5">
+      <origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
+    </xacro:cylinder_inertial>
+  </link>
+
+  <link name="${prefix}link_3">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://mm_model/meshes/lbr_iiwa_14_r820/visual/link_3.dae" />
+      </geometry>
+      <material name="orange"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://mm_model/meshes/lbr_iiwa_14_r820/collision/link_3.stl" />
+      </geometry>
+    </collision>
+    <xacro:cylinder_inertial radius="0.075" length="0.038" mass="0.5">
+      <origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
+    </xacro:cylinder_inertial>
+  </link>
+
+  <link name="${prefix}link_4">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://mm_model/meshes/lbr_iiwa_14_r820/visual/link_4.dae" />
+      </geometry>
+      <material name="grey"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://mm_model/meshes/lbr_iiwa_14_r820/collision/link_4.stl" />
+      </geometry>
+    </collision>
+    <xacro:cylinder_inertial radius="0.075" length="0.038" mass="0.5">
+      <origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
+    </xacro:cylinder_inertial>
+  </link>
+
+  <link name="${prefix}link_5">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://mm_model/meshes/lbr_iiwa_14_r820/visual/link_5.dae" />
+      </geometry>
+      <material name="green"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://mm_model/meshes/lbr_iiwa_14_r820/collision/link_5.stl" />
+      </geometry>
+    </collision>
+    <xacro:cylinder_inertial radius="0.075" length="0.038" mass="0.5">
+      <origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
+    </xacro:cylinder_inertial>
+  </link>
+
+  <link name="${prefix}link_6">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://mm_model/meshes/lbr_iiwa_14_r820/visual/link_6.dae" />
+      </geometry>
+      <material name="blue"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://mm_model/meshes/lbr_iiwa_14_r820/collision/link_6.stl" />
+      </geometry>
+    </collision>
+    <xacro:cylinder_inertial radius="0.075" length="0.038" mass="0.5">
+      <origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
+    </xacro:cylinder_inertial>
+  </link>
+
+  <link name="${prefix}link_7">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://mm_model/meshes/lbr_iiwa_14_r820/visual/link_7.dae" />
+      </geometry>
+      <material name="yellow"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://mm_model/meshes/lbr_iiwa_14_r820/collision/link_7.stl" />
+      </geometry>
+    </collision>
+    <xacro:cylinder_inertial radius="0.075" length="0.038" mass="0.5">
+      <origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
+    </xacro:cylinder_inertial>
+  </link>
+
+  <link name="${prefix}tool0" />
+
+
+
+  <!-- end of link list -->
+
+  <!-- joint list -->
+
+  <joint name="${prefix}agv_to_base_joint" type="fixed">
+    <origin xyz="-0.2 0 0.3" rpy="0 0 0" />
+    <parent link="${prefix}agv_link" />
+    <child link="${prefix}base_link" />
+  </joint>
+
+  <joint name="${prefix}agv_tocontrol_box" type="fixed">
+    <origin xyz="0.35 0 0.41" rpy="0 0 0" />
+    <parent link="${prefix}agv_link" />
+    <child link="${prefix}control_box" />
+  </joint>
+
+  <joint name="${prefix}joint_a1" type="revolute">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <parent link="${prefix}base_link" />
+    <child link="${prefix}link_1" />
+    <axis xyz="0 0 1" />
+    <limit lower="-2.9668" upper="2.9668" effort="50" velocity="1.4834" />
+  </joint>
+
+  <joint name="${prefix}joint_a2" type="revolute">
+    <origin xyz="-0.00043624 0 0.36" rpy="0 0 0" />
+    <parent link="${prefix}link_1" />
+    <child link="${prefix}link_2" />
+    <axis xyz="0 1 0" />
+    <limit lower="-2.0942" upper="2.0942" effort="50" velocity="1.4834" />
+  </joint>
+
+  <joint name="${prefix}joint_a3" type="revolute">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <parent link="${prefix}link_2" />
+    <child link="${prefix}link_3" />
+    <axis xyz="0 0 1" />
+    <limit lower="-2.9668" upper="2.9668" effort="50" velocity="1.7452" />
+  </joint>
+
+  <joint name="${prefix}joint_a4" type="revolute">
+    <origin xyz="0.00043624 0 0.42" rpy="0 0 0" />
+    <parent link="${prefix}link_3" />
+    <child link="${prefix}link_4" />
+    <axis xyz="0 -1 0" />
+    <limit lower="-2.0942" upper="2.0942" effort="50" velocity="1.3089" />
+  </joint>
+  
+  <joint name="${prefix}joint_a5" type="revolute">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <parent link="${prefix}link_4" />
+    <child link="${prefix}link_5" />
+    <axis xyz="0 0 1" />
+    <limit lower="-2.9668" upper="2.9668" effort="50" velocity="2.2688" />
+  </joint>
+
+  <joint name="${prefix}joint_a6" type="revolute">
+    <origin xyz="0 0 0.4" rpy="0 0 0" />
+    <parent link="${prefix}link_5" />
+    <child link="${prefix}link_6" />
+    <axis xyz="0 1 0" />
+    <limit lower="-2.0942" upper="2.0942" effort="50" velocity="2.356" />
+  </joint>
+
+  <joint name="${prefix}joint_a7" type="revolute">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <parent link="${prefix}link_6" />
+    <child link="${prefix}link_7" />
+    <axis xyz="0 0 1" />
+    <limit lower="-3.0541" upper="3.0541" effort="50" velocity="2.356" />
+  </joint>
+
+  <joint name="${prefix}joint_a7-tool0" type="fixed">
+    <origin xyz="0 0 0.126" rpy="0 0 0" />
+    <parent link="${prefix}link_7" />
+    <child link="${prefix}tool0" />
+    <axis xyz="0 0 0" />
+  </joint>
+
+ 
+
+  <!-- end of joint list -->
+
+</robot>

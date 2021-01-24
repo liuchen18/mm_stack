@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro">
+
+  <gazebo reference="${prefix}agv_link">
+    <material>Gazebo/Blue</material>
+  </gazebo>
+
+  <gazebo reference="${prefix}base_link">
+    <material>Gazebo/Purple</material>
+  </gazebo>
+
+  <gazebo reference="${prefix}link_1">
+      <material>Gazebo/Yellow</material>
+  </gazebo>
+
+  <gazebo reference="${prefix}link_2">
+      <material>Gazebo/Red</material>
+  </gazebo>
+
+  <gazebo reference="${prefix}link_3">
+      <material>Gazebo/Orange</material>
+  </gazebo>
+
+  <gazebo reference="${prefix}link_4">
+      <material>Gazebo/Grey</material>
+  </gazebo>
+
+  <gazebo reference="${prefix}link_5">
+      <material>Gazebo/Green</material>
+  </gazebo>
+
+  <gazebo reference="${prefix}link_6">
+      <material>Gazebo/Blue</material>
+  </gazebo>
+
+  <gazebo reference="${prefix}link_7">
+      <material>Gazebo/Yellow</material>
+  </gazebo>
+
+  <!--ros control plugin-->
+  <gazebo>
+    <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+      <robotNamespace>/mm</robotNamespace>
+      <robotParam>/mm/robot_description</robotParam>
+      <robotSimType>gazebo_ros_control/DefaultRobotHWSim</robotSimType>
+    </plugin>
+  </gazebo>
+
+  <!--move_base plugin -->
+  <gazebo>
+    <plugin name="base_controller" filename="libgazebo_ros_planar_move.so">
+      <commandTopic>/cmd_vel</commandTopic>
+      <odometryTopic>world</odometryTopic>
+      <odometryFrame>world</odometryFrame>
+      <odometryRate>20.0</odometryRate>
+      <robotBaseFrame>agv_link</robotBaseFrame>
+    </plugin>
+  </gazebo>
+
+</robot>
