@@ -14,17 +14,24 @@ add_library(${PROJECT_NAME}
         include/vec2d.h
         include/dynamic_voronoi.h
         include/bucket_queue.h
+        include/kinematics.h
+        include/point3d.h
+        include/mm_planner.h
+        include/iiwa_kinematics.h
 
         src/vec2d.cpp
         src/dynamic_voronoi.cpp
         src/bucket_queue.cpp
 
-        include/point3d.h include/mm_planner.h src/mm_planner.cpp include/cubic_spline.h)
+        src/mm_planner.cpp)
 
 target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
 
-add_executable(planner main.cpp)
-target_link_libraries(planner ${PROJECT_NAME} ${OpenCV_LIBS})
+add_executable(base_planner src/plan_base_path.cpp)
+target_link_libraries(base_planner ${PROJECT_NAME} ${OpenCV_LIBS})
+
+add_executable(manipulator_planner src/plan_manipulator_path.cpp)
+target_link_libraries(manipulator_planner ${PROJECT_NAME} ${OpenCV_LIBS})
 
 add_executable(map_generator src/map_generator.cpp)
 target_link_libraries(map_generator ${PROJECT_NAME} ${OpenCV_LIBS})

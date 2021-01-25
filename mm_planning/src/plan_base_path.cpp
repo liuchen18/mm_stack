@@ -46,6 +46,11 @@ std::vector<Point3d> generate_ee_data(){
         y.push_back(1000*sin(i*1.0/90*pi)+4000);
     }
 
+    std::ofstream myout("ee_path.txt");
+    double init_x=x[0],init_y=y[0];
+    for(int i=0;i<x.size();i++){
+        myout<<i*0.1<<" "<<(x[i]-init_x)/1000<<" "<<(y[i]-init_y)/1000<<" "<<z[i]/1000<<std::endl;
+    }
     std::vector<Point3d> ee_data;
     for(int i=0;i<x.size();i++){
         ee_data.emplace_back(x[i],y[i],z[i]);
@@ -55,7 +60,7 @@ std::vector<Point3d> generate_ee_data(){
 }
 
 
-void write_data_to_txt(std::vector<Pose2d> base_pose){
+void write_result_to_txt(std::vector<Pose2d> base_pose){
     std::ofstream myout("base_path.txt");
     double init_x=base_pose[0].x(),init_y=base_pose[0].y();
     for(int i=0;i<base_pose.size();i++){
@@ -80,7 +85,7 @@ int main() {
     planner.plan();
     std::vector<Pose2d> base_path=planner.get_base_path();
 
-    write_data_to_txt(base_path);
+    write_result_to_txt(base_path);
 
     return 0;
 }
