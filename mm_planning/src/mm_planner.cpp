@@ -79,8 +79,8 @@ void mm_planner::plan() {
 std::vector<Pose2d> mm_planner::compute_origin_base_path(std::vector<Point3d> ee_path) {
     std::vector<Pose2d> origin_base_path;
     for(auto& pt:ee_path){
-        double i_bound=inner_bound(pt.z());
-        double o_bound=outer_bound(pt.z());
+        double i_bound=inner_bound(pt.z()-base_height_);
+        double o_bound=outer_bound(pt.z()-base_height_);
         //here the position is divided by map_resolution
         origin_base_path.emplace_back((pt.x()-(i_bound+o_bound)/2)/map_resolution_,(pt.y())/map_resolution_,0);
     }
@@ -168,8 +168,8 @@ Vec2d mm_planner::bound_term(int pt_index) {
     Vec2d bd_term;
     Vec2d base(base_path_[pt_index].x(),base_path_[pt_index].y());
     Vec2d ee(ee_path_[pt_index].x()/map_resolution_,ee_path_[pt_index].y()/map_resolution_);
-    double o_bound=outer_bound(ee_path_[pt_index].z())/map_resolution_;
-    double i_bound=inner_bound(ee_path_[pt_index].z())/map_resolution_;
+    double o_bound=outer_bound(ee_path_[pt_index].z()-base_height_)/map_resolution_;
+    double i_bound=inner_bound(ee_path_[pt_index].z()-base_height_)/map_resolution_;
 
     double distance_square=(base.x()-ee.x())*(base.x()-ee.x())+(base.y()-ee.y())*(base.y()-ee.y());
     double distance=sqrt(distance_square);
@@ -224,8 +224,8 @@ Vec2d mm_planner::voronoi_term(int pt_index) {
 
 bool mm_planner::is_in_boundary(Point3d ee_pt,Vec2d base_pos) {
 
-    double i_bound = inner_bound(ee_pt.z())/map_resolution_;
-    double o_bound = outer_bound(ee_pt.z())/map_resolution_;
+    double i_bound = inner_bound(ee_pt.z()-base_height_)/map_resolution_;
+    double o_bound = outer_bound(ee_pt.z()-base_height_)/map_resolution_;
     double distance=hypot(ee_pt.x()/map_resolution_-base_pos.x(),ee_pt.y()/map_resolution_-base_pos.y());
     //std::cout<<"distance: "<<distance<<" inner: "<<i_bound<<" outer: "<<o_bound<<std::endl;
     if (distance < o_bound && distance > i_bound){

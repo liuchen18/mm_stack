@@ -40,16 +40,15 @@ std::vector<Point3d> generate_ee_data(){
     std::vector<double> x;
     std::vector<double> y;
     std::vector<double> z;
-    for(int i=0;i<400;i++){
-        z.push_back(800);
+    for(int i=0;i<300;i++){
+        z.push_back(1300);
         x.push_back(i*20+900);
         y.push_back(1000*sin(i*1.0/90*pi)+4000);
     }
 
-    std::ofstream myout("ee_path.txt");
-    double init_x=x[0],init_y=y[0];
+    std::ofstream myout("../data/ee_path.txt");
     for(int i=0;i<x.size();i++){
-        myout<<i*0.1<<" "<<(x[i]-init_x)/1000<<" "<<(y[i]-init_y)/1000<<" "<<z[i]/1000<<std::endl;
+        myout<<i*1.0<<" "<<x[i]<<" "<<y[i]<<" "<<z[i]<<std::endl;
     }
     std::vector<Point3d> ee_data;
     for(int i=0;i<x.size();i++){
@@ -61,10 +60,9 @@ std::vector<Point3d> generate_ee_data(){
 
 
 void write_result_to_txt(std::vector<Pose2d> base_pose){
-    std::ofstream myout("base_path.txt");
-    double init_x=base_pose[0].x(),init_y=base_pose[0].y();
+    std::ofstream myout("../data/base_path.txt");
     for(int i=0;i<base_pose.size();i++){
-        myout<<i*0.1<<" "<<(base_pose[i].x()-init_x)/100<<" "<<(base_pose[i].y()-init_y)/100<<std::endl;
+        myout<<i<<" "<<base_pose[i].x()*10<<" "<<base_pose[i].y()*10<<" "<<0<<std::endl;
     }
 }
 

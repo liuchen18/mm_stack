@@ -35,6 +35,7 @@ private:
 
     /// falloff rate for the voronoi field
     float alpha_ = 1.0;
+    double base_height_=400;
 
 
 public:
