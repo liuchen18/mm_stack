@@ -28,13 +28,13 @@ class cubic_spline():
             y[i]*=1.0
         
         if option ==0:
-            print('using default settings for the cubic spline fitting')
+            #print('using default settings for the cubic spline fitting')
             self.parameters = F.solution_of_equation(F.spline3_Parameters(x), x, y)
         elif option == 1:
-            print('using first derivative mode, the left value is '+str(l_val)+'and the right value is ' +str(r_val))
+            #print('using first derivative mode, the left value is '+str(l_val)+'and the right value is ' +str(r_val))
             self.parameters = F.solution_of_equation(F.spline3_Parameters(x, 1), x, y, opt = 1, lval = l_val, rval = r_val)
         elif option == 2:
-            print('using second derivative mode, the left value is '+str(l_val)+'and the right value is ' +str(r_val))
+            #print('using second derivative mode, the left value is '+str(l_val)+'and the right value is ' +str(r_val))
             self.parameters = F.solution_of_equation(F.spline3_Parameters(x, 2), x, y, opt = 2, lval = l_val, rval = r_val)
         self.minx=x[0]
         self.maxx=x[-1]

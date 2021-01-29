@@ -15,6 +15,10 @@ set_state_service = rospy.ServiceProxy('/gazebo/set_model_state', SetModelState)
 model = SetModelStateRequest()
 
 desired_position=[0,0,0]
+with open('../data/base_path.txt','r') as f:
+    data=list(map(float,f.readlines()[0].split()))
+    desired_position[0]=data[1]/1000
+    desired_position[1]=data[2]/1000
 
 desired_state=ModelState()
 desired_state.model_name='mm'

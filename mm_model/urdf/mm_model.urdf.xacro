@@ -231,13 +231,13 @@
   <!-- joint list -->
 
   <joint name="${prefix}agv_to_base_joint" type="fixed">
-    <origin xyz="-0.2 0 0.3" rpy="0 0 0" />
+    <origin xyz="0.3 0 0.3" rpy="0 0 0" />
     <parent link="${prefix}agv_link" />
     <child link="${prefix}base_link" />
   </joint>
 
   <joint name="${prefix}agv_tocontrol_box" type="fixed">
-    <origin xyz="0.35 0 0.41" rpy="0 0 0" />
+    <origin xyz="-0.35 0 0.41" rpy="0 0 0" />
     <parent link="${prefix}agv_link" />
     <child link="${prefix}control_box" />
   </joint>
