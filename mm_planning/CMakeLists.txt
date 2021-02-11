@@ -23,7 +23,7 @@ add_library(${PROJECT_NAME}
         src/dynamic_voronoi.cpp
         src/bucket_queue.cpp
 
-        src/mm_planner.cpp)
+        src/mm_planner.cpp include/dp_vertex.h)
 
 target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
 

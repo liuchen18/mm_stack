@@ -40,10 +40,10 @@ std::vector<Point3d> generate_ee_data(){
     std::vector<double> x;
     std::vector<double> y;
     std::vector<double> z;
-    for(int i=0;i<300;i++){
+    for(int i=0;i<30;i++){
         z.push_back(1300);
-        x.push_back(i*20+900);
-        y.push_back(1000*sin(i*1.0/90*pi)+4000);
+        x.push_back(i*200+900);
+        y.push_back(1000*sin(i*1.0/9*pi)+4000);
     }
 
     std::ofstream myout("../data/ee_path.txt");
@@ -78,8 +78,10 @@ int main() {
         return -1;
     }
 
-    mm_planner planner(img,ee_data);
-    planner.set_max_iteration(1000);
+    mm_planner planner(img,ee_data,true);
+
+    std::cout<<"start planning the base path"<<std::endl;
+    planner.set_max_iteration(100);
     planner.plan();
     std::vector<Pose2d> base_path=planner.get_base_path();
 

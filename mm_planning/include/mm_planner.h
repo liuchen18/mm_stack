@@ -10,6 +10,7 @@
 #include "pose2d.h"
 #include "vec2d.h"
 #include <cmath>
+#include "dp_vertex.h"
 
 class mm_planner{
 private:
@@ -22,20 +23,22 @@ private:
     std::vector<Pose2d> base_origin_path_; ///original base path
     std::vector<Pose2d> base_path_; ///planned base path
 
-    double weight_smoothness_=0.1;
+    double weight_smoothness_=0.05;
     double weight_bound_=30.0;
     double weight_distance_=0.05;
-    double weight_voronoi_=0.1;
+    double weight_voronoi_=5;
 
     int map_resolution_=10;
 
     ///the threshold of the voronoi term, if the distance between the closed obstacle and current position is larger
     ///than this value, voronoi term will not work
-    double vorObsDMax_=20;
+    double vorObsDMax_=30;
 
     /// falloff rate for the voronoi field
-    float alpha_ = 1.0;
+    float alpha_ = 2;
     double base_height_=400;
+
+    bool is_dp_;
 
 
 public:
@@ -44,7 +47,7 @@ public:
      * @param img the input map
      * @param ee_path the desired end effector path
      */
-    mm_planner(cv::Mat img,const std::vector<Point3d>& ee_path);
+    mm_planner(cv::Mat img,const std::vector<Point3d>& ee_path,bool is_dp);
 
     /**
      * default constructor
@@ -79,7 +82,36 @@ public:
      * @param ee_path
      * @return
      */
-    std::vector<Pose2d> compute_origin_base_path(std::vector<Point3d> ee_path);
+    std::vector<Pose2d> compute_origin_base_path(std::vector<Point3d> ee_path,bool is_dp);
+
+    /**
+     * get the sampled point according to the given end effector point
+     * @param ee_point Point3d, the given end effector point
+     * @param sample_number sanmpled point number
+     * @return the vector of all the sampled points
+     */
+    std::vector<Vec2d*> get_sample_points(Point3d ee_point,int sample_number);
+
+    /**
+     * compute a original base path according to the given sampled points
+     * @param sampled_points
+     * @return original base path
+     */
+    std::vector<Vec2d*> dynamic_programming(std::vector<std::vector<Vec2d*>> sampled_points);
+
+    /**
+     * delete the useless sampled points
+     * @param sampled_points
+     * @param dp_path
+     */
+    void clear_useless_points(std::vector<std::vector<Vec2d*>> sampled_points,std::vector<Vec2d*> dp_path);
+
+    /**
+     * convert the vector of pointers to a vector of pose2d and delete the pointers
+     * @param dp_path
+     * @param path
+     */
+    void convert_ptr_vec(std::vector<Vec2d*>& dp_path,std::vector<Pose2d>& path);
 
     /**
      * compute the inner bound of the given height
@@ -183,6 +215,25 @@ public:
      *
      */
     void show_final_path();
+
+    /**
+     * check if the path between the two vertex is collision free
+     * @param v1
+     * @param v2
+     * @return true if no collision free
+     */
+    bool is_collision_free(Vertex v1,Vertex v2);
+
+    /**
+     *
+     * @param point
+     * @return
+     */
+    bool is_collision_free(Vec2d point);
+
+    bool is_collision_free(Vec2d* v1,Vec2d* v2);
+
+    bool is_collision_free(Vec2d v1,Vec2d v2);
 
 };
 
