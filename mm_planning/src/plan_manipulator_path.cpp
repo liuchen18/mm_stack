@@ -46,6 +46,8 @@ int main(){
     std::vector<std::vector<double>> base_path=get_data(base_dir,4);
     std::vector<std::vector<vector<double>>> manioulator_path;
 
+    //std::cout<<ee_path.size()<<" "<<base_path.size()<<std::endl;
+
     for (int i=0;i<ee_path.size();i++){
         std::vector<std::vector<double>> ee;
         std::vector<double> ee_time={ee_path[i][0]};
@@ -72,6 +74,7 @@ int main(){
     }
 
     write_result_to_txt(joint_values);
+    std::cout<<"planned manipulator path successfully"<<std::endl;
 
 
 

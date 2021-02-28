@@ -20,13 +20,15 @@ private:
     int map_width_;
     int map_height_;
     std::vector<Point3d> ee_path_; ///desired ee path
+    std::vector<Point3d> parse_ee_path_;
     std::vector<Pose2d> base_origin_path_; ///original base path
-    std::vector<Pose2d> base_path_; ///planned base path
+    std::vector<Pose2d> parse_base_origin_path_;
+    std::vector<Pose2d> optimized_base_path_; ///planned base path
 
-    double weight_smoothness_=0.05;
-    double weight_bound_=30.0;
-    double weight_distance_=0.05;
-    double weight_voronoi_=5;
+    double weight_smoothness_=0.1;
+    double weight_bound_=10.0;
+    double weight_distance_=0.1;
+    double weight_voronoi_=0.1;
 
     int map_resolution_=10;
 
@@ -35,10 +37,13 @@ private:
     double vorObsDMax_=30;
 
     /// falloff rate for the voronoi field
-    float alpha_ = 2;
+    float alpha_ = 1;
+
     double base_height_=400;
 
     bool is_dp_;
+
+    int inter_num_=10;
 
 
 public:
@@ -70,7 +75,7 @@ public:
      * get the planned path of the base
      * @return
      */
-    std::vector<Pose2d> get_base_path(){return base_path_;}
+    std::vector<Pose2d> get_base_path(){return optimized_base_path_;}
 
     /**
      * plan the base path
@@ -78,7 +83,7 @@ public:
     void plan();
 
     /**
-     * compute the initial base path
+     * compute the initial base path, the origin base path is updated and the parse path is returned
      * @param ee_path
      * @return
      */
@@ -234,6 +239,28 @@ public:
     bool is_collision_free(Vec2d* v1,Vec2d* v2);
 
     bool is_collision_free(Vec2d v1,Vec2d v2);
+
+    /**
+     *
+     * @param origin_path
+     * @param inter_num
+     * @return
+     */
+    std::vector<Pose2d> parse_path(std::vector<Pose2d> origin_path,int inter_num);
+
+    /**
+     *
+     * @param origin_path
+     * @param inter_num
+     * @return
+     */
+    std::vector<Point3d> parse_path(std::vector<Point3d> origin_path,int inter_num);
+
+    void show_sampled_points(std::vector<std::vector<Vec2d*>> sampled_points);
+
+    void show_collision_edge(Vertex p1,Vertex p2);
+
+    void show_collision_point(Vec2d p,int size);
 
 };
 

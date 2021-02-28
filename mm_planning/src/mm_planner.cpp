@@ -41,28 +41,30 @@ void mm_planner::plan() {
     std::cout<<"original base path is found! "<<std::endl;
     //print_vector_pose2d(base_origin_path_);
 
-    base_path_=base_origin_path_;
+    parse_path(ee_path_,inter_num_);
+    parse_path(base_origin_path_,inter_num_);
+    optimized_base_path_=parse_base_origin_path_;
 
     double totalWeight = weight_bound_ + weight_distance_ + weight_smoothness_;
 
     while(iterations < max_iteration_){
         iterations+=1;
-        for(int i=1;i<base_path_.size()-1;i++){
-            Vec2d current(base_path_[i].x(),base_path_[i].y());
+        for(int i=1;i<optimized_base_path_.size()-1;i++){
+            Vec2d current(optimized_base_path_[i].x(),optimized_base_path_[i].y());
             Vec2d correction;
             //std::cout<<"base position"<<current.x()<<" "<<current.y()<<std::endl;
 
             correction=correction-distance_term(i)*weight_distance_;
 
-            if(!is_in_boundary(ee_path_[i],current+correction)){
+            if(!is_in_boundary(parse_ee_path_[i],current+correction)){
                 continue;
             }
             correction=correction-bound_term(i)*weight_bound_;
-            if(!is_in_boundary(ee_path_[i],current+correction)){
+            if(!is_in_boundary(parse_ee_path_[i],current+correction)){
                 continue;
             }
             correction=correction-smoothness_term(i)*weight_smoothness_;
-            if(!is_in_boundary(ee_path_[i],current+correction)){
+            if(!is_in_boundary(parse_ee_path_[i],current+correction)){
                 continue;
             }
             //std::cout<<"base position"<<current.x()<<" "<<current.y()<<std::endl;
@@ -71,15 +73,15 @@ void mm_planner::plan() {
             //std::cout << "bound: " << 10 * bound_term(i).x() << " " << 10 * bound_term(i).y() << std::endl;
             //std::cout<<"correction: "<<correction.x()<<" "<<correction.y()<<std::endl;
             correction=correction-voronoi_term(i)*weight_voronoi_;
-            if(!is_in_boundary(ee_path_[i],current+correction)){
+            if(!is_in_boundary(parse_ee_path_[i],current+correction)){
                 continue;
             }
-            if(!is_collision_free(Vec2d(base_path_[i].x(),base_path_[i].y()),current+correction)){
+            if(!is_collision_free(Vec2d(optimized_base_path_[i].x(),optimized_base_path_[i].y()),current+correction)){
                 continue;
             }
             current = current +correction;
-            base_path_[i].set_x(current.x());
-            base_path_[i].set_y(current.y());
+            optimized_base_path_[i].set_x(current.x());
+            optimized_base_path_[i].set_y(current.y());
         }
         //show_final_path();
     }
@@ -106,6 +108,7 @@ std::vector<Pose2d> mm_planner::compute_origin_base_path(std::vector<Point3d> ee
             std::vector<Vec2d*> current_sampled_points=get_sample_points(ee_point,10);
             sampled_points.push_back(current_sampled_points);
         }
+        show_sampled_points(sampled_points);
         //std::cout<<"get all the sampled points"<<std::endl;
 
         std::vector<Vec2d*> dp_path=dynamic_programming(sampled_points);
@@ -116,8 +119,37 @@ std::vector<Pose2d> mm_planner::compute_origin_base_path(std::vector<Point3d> ee
         convert_ptr_vec(dp_path,origin_base_path);
 
     }
+
     base_origin_path_=origin_base_path;
     return origin_base_path;
+}
+
+std::vector<Pose2d> mm_planner::parse_path(std::vector<Pose2d> origin_path, int inter_num) {
+    std::vector<Pose2d> parse_origin_base_path;
+    for(int i=0;i<origin_path.size()-1;i++){
+        for(int count=0;count<inter_num;count++){
+            double x=origin_path[i].x()+(origin_path[i+1].x()-origin_path[i].x())/inter_num_*count;
+            double y=origin_path[i].y()+(origin_path[i+1].y()-origin_path[i].y())/inter_num_*count;
+            parse_origin_base_path.emplace_back(x,y,0);
+        }
+    }
+    parse_base_origin_path_=parse_origin_base_path;
+    return parse_origin_base_path;
+}
+
+std::vector<Point3d> mm_planner::parse_path(std::vector<Point3d> origin_path, int inter_num) {
+    std::vector<Point3d> parse_ee_path;
+    for(int i=0;i<origin_path.size()-1;i++){
+        for(int count=0;count<inter_num;count++){
+            double x=origin_path[i].x()+(origin_path[i+1].x()-origin_path[i].x())/inter_num_*count;
+            double y=origin_path[i].y()+(origin_path[i+1].y()-origin_path[i].y())/inter_num_*count;
+            double z=origin_path[i].z()+(origin_path[i+1].z()-origin_path[i].z())/inter_num_*count;
+            parse_ee_path.emplace_back(x,y,z);
+        }
+    }
+
+    parse_ee_path_=parse_ee_path;
+    return parse_ee_path;
 }
 
 void mm_planner::convert_ptr_vec(std::vector<Vec2d *> &dp_path, std::vector<Pose2d> &path) {
@@ -154,10 +186,11 @@ std::vector<Vec2d*> mm_planner::dynamic_programming(std::vector<std::vector<Vec2
 
     //for every colum
     for(int i=1;i<graph.size();i++){
+        //double mindis=std::numeric_limits<double>::max();
         //for every point in next colum
         for(auto &vertex:graph[i]){
             if(!is_collision_free(vertex.get_position())){
-                //std::cout<<"point collision"<<std::endl;
+                //std::cout<<"point collision "<<vertex.get_position().x()<<" "<<vertex.get_position().y()<<std::endl;
                 continue;
             }
             //for every possible parent
@@ -173,8 +206,10 @@ std::vector<Vec2d*> mm_planner::dynamic_programming(std::vector<std::vector<Vec2
                 }
                 else{
                     //std::cout<<"collision"<<std::endl;
+                    //show_collision_edge(vertex,possible_parent);
                 }
             }
+            //std::cout<<"this is the "<<i<<"colum, the cost is"<<vertex.get_cost()<<std::endl;
         }
     }
     //std::cout<<"dp finished"<<std::endl;
@@ -215,13 +250,19 @@ std::vector<Vec2d*> mm_planner::dynamic_programming(std::vector<std::vector<Vec2
 
 bool mm_planner::is_collision_free(Vertex v1, Vertex v2) {
     double distance=v1.distance_to(v2);
-    double angle=atan2(v2.get_position().y()-v1.get_position().y(),v2.get_position().x()-v1.get_position().y());
+    double angle=atan2(v2.get_position().y()-v1.get_position().y(),v2.get_position().x()-v1.get_position().x());
     int i=0;
+    //Vec2d p1(v1.get_position().x(),v1.get_position().y()),p2(v2.get_position().x(),v2.get_position().y());
+    //show_collision_point(p1,5);
+    //show_collision_point(p2,5);
     while(i<distance){
-        i+=1;
+        i+=5;
         Vec2d cur(v1.get_position().x()+i*cos(angle),v1.get_position().y()+i*sin(angle));
-        if(map_img_.at<uchar>(int(cur.y()),int(cur.x()))!=255){
-            //std::cout<<"collision"<<std::endl;
+        //show_collision_point(cur,1);
+        //std::cout<<map_img_.channels()<<std::endl;
+        if(map_img_.at<uchar>(cv::Point(int(cur.x()),int(cur.y())))==0){
+            //std::cout<<map_img_.at<uchar>(int(cur.y()),int(cur.x()))<<std::endl;
+            //show_collision_point(cur,1);
             return false;
         }
     }
@@ -240,7 +281,7 @@ bool mm_planner::is_collision_free(Vec2d v1, Vec2d v2) {
 }
 
 bool mm_planner::is_collision_free(Vec2d point){
-    if(map_img_.at<uchar>(int(point.y()),int(point.x()))!=255){
+    if(map_img_.at<uchar>(cv::Point(int(point.x()),int(point.y())))!=255){
         //std::cout<<"collision"<<std::endl;
         return false;
     }
@@ -268,9 +309,17 @@ std::vector<Vec2d*> mm_planner::get_sample_points(Point3d ee_point, int sample_n
     double o_bound=outer_bound(ee_point.z()-base_height_);
     double redius=(i_bound+o_bound)/2;
     for(int i=0;i<sample_number;i++){
+
+        //180 deg
         double angle=i*1.0/sample_number*pi;
         double x=ee_point.x()-sin(angle)*redius;
         double y=ee_point.y()-cos(angle)*redius;
+        /*
+        //360 deg
+        double angle=i*2.0/sample_number*pi;
+        double x=ee_point.x()-sin(angle)*redius;
+        double y=ee_point.y()-cos(angle)*redius;
+        */
         Vec2d* sampled_point=new Vec2d(x/map_resolution_,y/map_resolution_);
         sampled_points.push_back(sampled_point);
 
@@ -291,6 +340,7 @@ double mm_planner::inner_bound(double height) {
     }
     else{
         std::cout<<"invalid height for the bound"<<std::endl;
+        std::cout<<"the input height is : "<< height<<std::endl;
         exit(0);
     }
     return bound;
@@ -305,6 +355,7 @@ double mm_planner::outer_bound(double height) {
     }
     else{
         std::cout<<"invalid height for the bound"<<std::endl;
+        std::cout<<"the input height is : "<< height<<std::endl;
         exit(0);
     }
     return bound;
@@ -312,10 +363,10 @@ double mm_planner::outer_bound(double height) {
 
 Vec2d mm_planner::distance_term(int pt_index) {
     Vec2d dis_term;
-    if(pt_index>0 && pt_index<base_path_.size()-1) {
-        Vec2d current(base_path_[pt_index].x(),base_path_[pt_index].y());
-        Vec2d next(base_path_[pt_index+1].x(),base_path_[pt_index+1].y());
-        Vec2d last(base_path_[pt_index-1].x(),base_path_[pt_index-1].y());
+    if(pt_index>0 && pt_index<optimized_base_path_.size()-1) {
+        Vec2d current(optimized_base_path_[pt_index].x(),optimized_base_path_[pt_index].y());
+        Vec2d next(optimized_base_path_[pt_index+1].x(),optimized_base_path_[pt_index+1].y());
+        Vec2d last(optimized_base_path_[pt_index-1].x(),optimized_base_path_[pt_index-1].y());
         dis_term=4*current-2*last-2*next;
         return dis_term;
     }
@@ -328,24 +379,24 @@ Vec2d mm_planner::distance_term(int pt_index) {
 Vec2d mm_planner::smoothness_term(int pt_index) {
     Vec2d smooth_term;
     Vec2d current,last,lastlast,next,nextnext;
-    if(pt_index>1 && pt_index<base_path_.size()-2) {
-        current.set_x(base_path_[pt_index].x());
-        current.set_y(base_path_[pt_index].y());
+    if(pt_index>1 && pt_index<optimized_base_path_.size()-2) {
+        current.set_x(optimized_base_path_[pt_index].x());
+        current.set_y(optimized_base_path_[pt_index].y());
         //if(pt_index>0){
-        last.set_x((base_path_[pt_index - 1].x()));
-        last.set_y(base_path_[pt_index - 1].y());
+        last.set_x((optimized_base_path_[pt_index - 1].x()));
+        last.set_y(optimized_base_path_[pt_index - 1].y());
         //}
         //if(pt_index>1){
-        lastlast.set_y(base_path_[pt_index - 2].y());
-        lastlast.set_x(base_path_[pt_index - 2].x());
+        lastlast.set_y(optimized_base_path_[pt_index - 2].y());
+        lastlast.set_x(optimized_base_path_[pt_index - 2].x());
         //}
         //if(pt_index<base_path_.size()-1){
-        next.set_x(base_path_[pt_index + 1].x());
-        next.set_y(base_path_[pt_index + 1].y());
+        next.set_x(optimized_base_path_[pt_index + 1].x());
+        next.set_y(optimized_base_path_[pt_index + 1].y());
         //}
         //if(pt_index<base_path_.size()-2){
-        nextnext.set_x(base_path_[pt_index + 2].x());
-        nextnext.set_y(base_path_[pt_index + 2].y());
+        nextnext.set_x(optimized_base_path_[pt_index + 2].x());
+        nextnext.set_y(optimized_base_path_[pt_index + 2].y());
         //}
         smooth_term = 2.0 * (nextnext - 4 * next + 6 * current - 4 * last + lastlast);
         return smooth_term;
@@ -357,10 +408,10 @@ Vec2d mm_planner::smoothness_term(int pt_index) {
 
 Vec2d mm_planner::bound_term(int pt_index) {
     Vec2d bd_term;
-    Vec2d base(base_path_[pt_index].x(),base_path_[pt_index].y());
-    Vec2d ee(ee_path_[pt_index].x()/map_resolution_,ee_path_[pt_index].y()/map_resolution_);
-    double o_bound=outer_bound(ee_path_[pt_index].z()-base_height_)/map_resolution_;
-    double i_bound=inner_bound(ee_path_[pt_index].z()-base_height_)/map_resolution_;
+    Vec2d base(optimized_base_path_[pt_index].x(),optimized_base_path_[pt_index].y());
+    Vec2d ee(parse_ee_path_[pt_index].x()/map_resolution_,parse_ee_path_[pt_index].y()/map_resolution_);
+    double o_bound=outer_bound(parse_ee_path_[pt_index].z()-base_height_)/map_resolution_;
+    double i_bound=inner_bound(parse_ee_path_[pt_index].z()-base_height_)/map_resolution_;
 
     double distance_square=(base.x()-ee.x())*(base.x()-ee.x())+(base.y()-ee.y())*(base.y()-ee.y());
     double distance=sqrt(distance_square);
@@ -381,7 +432,7 @@ Vec2d mm_planner::bound_term(int pt_index) {
 
 Vec2d mm_planner::voronoi_term(int pt_index) {
     Vec2d gradient;
-    Vec2d xi(base_path_[pt_index].x(),base_path_[pt_index].y());
+    Vec2d xi(optimized_base_path_[pt_index].x(),optimized_base_path_[pt_index].y());
     float obsDst = voronoi_.getDistance(xi.x(), xi.y());
     Vec2d obsVct(xi.x() - voronoi_.GetClosetObstacleCoor(xi).x(),
                  xi.y() - voronoi_.GetClosetObstacleCoor(xi).y());
@@ -462,19 +513,61 @@ void mm_planner::show_final_path() {
         //cv::waitKey();
     }
 
+
     imshow("original path", map);
     cv::waitKey();
 
     //std::cout<<"optimized path: "<<std::endl;
     //print_vector_pose2d(base_path_);
 
-    for(int i=0;i<base_path_.size()-1;i++) {
-        cv::Point cur(base_path_[i].x(), base_path_[i].y());
-        cv::Point next(base_path_[i + 1].x(), base_path_[i + 1].y());
+    for(int i=0;i<optimized_base_path_.size()-1;i++) {
+        cv::Point cur(optimized_base_path_[i].x(), optimized_base_path_[i].y());
+        cv::Point next(optimized_base_path_[i + 1].x(), optimized_base_path_[i + 1].y());
         cv::line(map, cur, next, cv::Scalar(0));
-        cv::circle(map, cur, 3, cv::Scalar(1));
+        cv::circle(map, cur, 5, cv::Scalar(1));
     }
     imshow("optimized path", map);
     cv::waitKey();
     imwrite("../map_imgs/optimized_path.png", map);
+}
+
+void mm_planner::show_sampled_points(std::vector<std::vector<Vec2d *>> sampled_points) {
+    cv::Mat map = cv::Mat::zeros(cv::Size(map_width_, map_height_), CV_8UC1);
+    map=map_img_;
+    if(map.channels() != 1) {
+        cv::cvtColor(map, map, cv::COLOR_BGR2GRAY);
+     }
+    for(auto points_list: sampled_points){
+        for(auto point:points_list) {
+            cv::Point p(point->x(), point->y());
+            cv::circle(map, p, 2, cv::Scalar(1));
+        }
+    }
+    imshow("sampled points",map);
+    cv::waitKey();
+}
+
+void mm_planner::show_collision_point(Vec2d p,int size) {
+    cv::Mat map = cv::Mat::zeros(cv::Size(map_width_, map_height_), CV_8UC1);
+    map=map_img_;
+    if(map.channels() != 1) {
+        cv::cvtColor(map, map, cv::COLOR_BGR2GRAY);
+    }
+    cv::Point pt(p.x(),p.y());
+    cv::circle(map, pt, size, cv::Scalar(1));
+    imshow("collision points",map);
+    cv::waitKey();
+}
+
+void mm_planner::show_collision_edge(Vertex p1, Vertex p2) {
+    cv::Mat map = cv::Mat::zeros(cv::Size(map_width_, map_height_), CV_8UC1);
+    map=map_img_;
+    if(map.channels() != 1) {
+        cv::cvtColor(map, map, cv::COLOR_BGR2GRAY);
+    }
+    cv::Point p11(p1.get_position().x(),p1.get_position().y()),p22(p2.get_position().x(),p2.get_position().y());
+
+    cv::line(map, p11, p22, cv::Scalar(0));
+    imshow("sampled points",map);
+    cv::waitKey();
 }

@@ -41,14 +41,14 @@ std::vector<Point3d> generate_ee_data(){
     std::vector<double> y;
     std::vector<double> z;
     for(int i=0;i<30;i++){
-        z.push_back(1300);
+        z.push_back(1500-5*i);
         x.push_back(i*200+900);
         y.push_back(1000*sin(i*1.0/9*pi)+4000);
     }
 
     std::ofstream myout("../data/ee_path.txt");
-    for(int i=0;i<x.size();i++){
-        myout<<i*1.0<<" "<<x[i]<<" "<<y[i]<<" "<<z[i]<<std::endl;
+    for(int i=0;i<(x.size()-1)*10;i++){
+        myout<<i*1.0<<" "<<i*20+900<<" "<<1000*sin(i*0.1/9*pi)+4000<<" "<<(1500-0.5*i)<<std::endl;
     }
     std::vector<Point3d> ee_data;
     for(int i=0;i<x.size();i++){
